@@ -12,6 +12,14 @@
 
 action_endpoint:
  url: "http://localhost:5055/webhook"
+ mcp_servers:
+ - name : it_management_server
+ url: http://localhost:8080/mcp
+ type: http
+ meta_map:
+ from_slots:
+ - slot: email
+ param: user_email
 
 # Tracker store which is used to store the conversations.
 # By default the conversations are stored in memory.
