@@ -1,0 +1,10 @@
+flows:
+password_reset_flow:
+descrption: "Help user reset their password"
+steps:
+- collect : email
+- call: it_management_server.reset_password
+next:
+- if: slots.reset_succesful
+then: "utter_reset_done"
+-else: "utter_reset_failed"
