@@ -211,6 +211,8 @@ forms:
     required_slots:
     - email
 actions:
+actions:
+  - it_management_server.reset_password
 - action_ask_email
 - action_check_incident_status
 - action_handoff
