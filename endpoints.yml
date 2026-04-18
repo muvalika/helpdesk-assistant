@@ -51,3 +51,9 @@ tracker_store:
 
 action_endpoint:
   url: "http://action-server:5055/webhook"
+  event_broker:
+  type: "pika"
+  url: "localhost"
+  username: "admin"
+  password: "password"
+  queue: "rasa_events"
