@@ -212,3 +212,31 @@ class ActionCheckIncidentStatus(Action):
 
         dispatcher.utter_message(message)
         return [AllSlotsReset(), SlotSet("previous_email", email)]
+from typing import Any, Text, Dict, List
+from rasa_sdk import Action, Tracker
+from rasa_sdk.executor import CollectingDispatcher
+from mcstatus import JavaServer
+import os
+
+class ActionCheckMCStatus(Action):
+    def name(self) -> Text:
+        return "action_check_mc_status"
+
+    def run(self, dispatcher: CollectingDispatcher,
+            tracker: Tracker,
+            domain: Dict[Text, Any]) -> List[Dict[Text, Any]]:
+        
+        try:
+            # Connect to the MC server defined in docker-compose
+            server = JavaServer.lookup(f"{os.getenv('MC_HOST', 'localhost')}:25565")
+            status = server.status()
+            
+            msg = (f"The Minecraft server is ONLINE. "
+                   f"Players: {status.players.online}/{status.players.max}. "
+                   f"Latency: {round(status.latency, 2)}ms.")
+            
+            dispatcher.utter_message(text=msg)
+        except Exception as e:
+            dispatcher.utter_message(text="I couldn't reach the Minecraft server right now.")
+            
+        return []
