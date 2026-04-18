@@ -1,3 +1,8 @@
 rasa~=3.0.0
 rasa-sdk~=3.0.0  # if you change this, make sure to change the Dockerfile to match
 -r actions/requirements-actions.txt
+# requirements.txt
+rasa-sdk>=3.0.0
+mcstatus>=6.5.0      # For server ping/status
+mcrcon>=0.7.0        # For sending commands (whitelist, restart, etc.)
+psycopg2-binary      # PostgreSQL adapter
