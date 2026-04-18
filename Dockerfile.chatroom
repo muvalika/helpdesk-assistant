@@ -19,3 +19,50 @@ RUN yarn build
 EXPOSE 8080
 
 CMD [ "yarn", "serve" ]
+version: '3.8'
+services:
+  # Advanced Database
+  db:
+    image: postgres:15
+    environment:
+      POSTGRES_USER: rasa_admin
+      POSTGRES_PASSWORD: rasa_password
+      POSTGRES_DB: helpdesk_history
+    ports:
+      - "5432:5432"
+
+  # Minecraft Server
+  mc-server:
+    image: itzg/minecraft-server
+    ports:
+      - "25565:25565" # Game port
+      - "25575:25575" # RCON port
+    environment:
+      EULA: "TRUE"
+      TYPE: "PAPER"
+      ENABLE_RCON: "true"
+      RCON_PASSWORD: "mc_password"
+      MEMORY: "2G"
+
+  # Rasa Action Server (with MC logic)
+  action-server:
+    build:
+      context: .
+      dockerfile: Dockerfile.actions
+    volumes:
+      - "./actions:/app/actions"
+    environment:
+      MC_HOST: "mc-server"
+      MC_RCON_PASS: "mc_password"
+
+  # Rasa Core
+  rasa:
+    image: rasa/rasa:3.6.0-full
+    ports:
+      - "5005:5005"
+    volumes:
+      - ".:/app"
+    command: run --enable-api --cors "*"
+    depends_on:
+      - db
+      - action-server
