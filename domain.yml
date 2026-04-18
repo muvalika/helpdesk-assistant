@@ -218,3 +218,13 @@ actions:
 - action_open_incident
 - validate_open_incident_form
 - validate_incident_status_form
+
+
+# domain.yml
+slots:
+  last_issue_type:
+    type: text
+    mappings:
+      - type: from_entity
+        entity: issue
+    persistence: true # This keeps the info in your Postgres DB across sessions
