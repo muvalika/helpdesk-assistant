@@ -40,3 +40,14 @@ action_endpoint:
 #  username: username
 #  password: password
 #  queue: queue
+# endpoints.yml
+tracker_store:
+    type: postgres
+    url: ${DB_URL}
+    port: 5432
+    db: ${DB_NAME}
+    username: ${DB_USER}
+    password: ${DB_PASSWORD}
+
+action_endpoint:
+  url: "http://action-server:5055/webhook"
