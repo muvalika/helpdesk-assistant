@@ -1,0 +1,113 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Enterprise IT Help Desk Agent</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        :root { --primary-blue: #003366; --bot-bg: #f8f9fa; }
+        body { background-color: #f0f2f5; height: 100vh; display: flex; flex-direction: column; }
+        #chat-wrapper { flex: 1; display: flex; justify-content: center; align-items: center; padding: 20px; }
+        #chat-card { width: 100%; max-width: 500px; height: 80vh; border-radius: 15px; overflow: hidden; display: flex; flex-direction: column; box-shadow: 0 10px 30px rgba(0,0,0,0.1); }
+        #chat-messages { flex: 1; overflow-y: auto; padding: 20px; background: white; display: flex; flex-direction: column; gap: 12px; }
+        .msg { max-width: 80%; padding: 10px 15px; border-radius: 15px; font-size: 0.95rem; line-height: 1.4; }
+        .msg-bot { align-self: flex-start; background: var(--bot-bg); border: 1px solid #dee2e6; color: #333; }
+        .msg-user { align-self: flex-end; background: var(--primary-blue); color: white; }
+        .typing-indicator { font-size: 0.8rem; color: #6c757d; display: none; margin-bottom: 10px; }
+    </style>
+</head>
+<body>
+
+<div id="chat-wrapper">
+    <div id="chat-card" class="card">
+        <div class="card-header text-white text-center py-3" style="background: var(--primary-blue);">
+            <h5 class="mb-0">IT Support Assistant</h5>
+            <small>Powered by Rasa & MCP</small>
+        </div>
+        
+        <div id="chat-messages">
+            <div class="msg msg-bot">Hello! I can help you with password resets, VPN issues, or software access. What's happening?</div>
+        </div>
+        
+        <div id="typing" class="px-3 typing-indicator">Assistant is thinking...</div>
+
+        <div class="card-footer bg-white border-top-0 p-3">
+            <div class="input-group">
+                <input type="text" id="userInput" class="form-control border-end-0" placeholder="Type your issue..." autocomplete="off">
+                <button class="btn btn-primary px-4" onclick="ChatApp.send()">Send</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    /**
+     * ChatApp Architecture:
+     * Handles the interaction between the UI and the Rasa Rest API.
+     */
+    const ChatApp = (() => {
+        const msgContainer = document.getElementById('chat-messages');
+        const inputField = document.getElementById('userInput');
+        const typingIndicator = document.getElementById('typing');
+        const RASA_API_URL = "http://localhost:5005/webhooks/rest/webhook";
+
+        const renderMessage = (text, sender) => {
+            const div = document.createElement('div');
+            div.className = `msg msg-${sender} shadow-sm`;
+            div.innerText = text;
+            msgContainer.appendChild(div);
+            msgContainer.scrollTop = msgContainer.scrollHeight;
+        };
+
+        const toggleLoading = (show) => {
+            typingIndicator.style.display = show ? 'block' : 'none';
+        };
+
+        return {
+            send: async () => {
+                const message = inputField.value.trim();
+                if (!message) return;
+
+                // 1. Update UI for User
+                renderMessage(message, 'user');
+                inputField.value = '';
+                toggleLoading(true);
+
+                try {
+                    // 2. Network Call to Rasa (which handles MCP logic)
+                    const response = await fetch(RASA_API_URL, {
+                        method: "POST",
+                        headers: { "Content-Type": "application/json" },
+                        body: JSON.stringify({ sender: "user_session_01", message: message })
+                    });
+
+                    const data = await response.json();
+                    
+                    // 3. Render Bot Responses
+                    setTimeout(() => {
+                        toggleLoading(false);
+                        if (data.length === 0) {
+                            renderMessage("I'm having trouble connecting to my brain. Please try again later.", "bot");
+                        } else {
+                            data.forEach(res => renderMessage(res.text, "bot"));
+                        }
+                    }, 500); // Slight delay for natural feel
+
+                } catch (error) {
+                    toggleLoading(false);
+                    renderMessage("Connection Error: Is the Rasa server running?", "bot");
+                }
+            }
+        };
+    })();
+
+    // Allow "Enter" key to send message
+    document.getElementById('userInput').addEventListener('keypress', (e) => {
+        if (e.key === 'Enter') ChatApp.send();
+    });
+</script>
+
+</body>
+</html>
